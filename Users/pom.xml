@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>co.aisystem.db</groupId>
+    <artifactId>Users</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <parent>
+        <artifactId>demo</artifactId>
+        <groupId>co.aisystem.demo.sb2</groupId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+
+        <db.driver>org.postgresql.Driver</db.driver>
+        <db.url>jdbc:postgresql://localhost:5432/users</db.url>
+        <db.username>crm_user</db.username>
+        <api.db>co.aisystem.demo.api.db.users</api.db>
+        <db.password>crm_user</db.password>
+        <jooq.generator.db.dialect>org.jooq.util.postgres.PostgresDatabase</jooq.generator.db.dialect>
+        <jooq.generated.source>${basedir}/gensrc/main/java</jooq.generated.source>
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jooq</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.3</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jool</artifactId>
+            <version>0.9.13</version>
+            <scope>compile</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${jooq.generated.source}</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jooq</groupId>
+                <artifactId>jooq-codegen-maven</artifactId>
+                <!--<version>${jooq.version}</version>-->
+
+                <configuration>
+                    <jdbc>
+                        <driver>${db.driver}</driver>
+                        <url>${db.url}</url>
+                        <user>${db.username}</user>
+                        <password>${db.password}</password>
+                    </jdbc>
+                    <generator>
+                        <name>org.jooq.util.JavaGenerator</name>
+                        <database>
+                            <customTypes>
+                                <customType>
+                                    <name>JsonElement</name>
+
+                                    <type>com.google.gson.JsonElement</type>
+
+                                    <binding>co.aisystem.db.converters.PostgresJSONGsonBinding</binding>
+                                </customType>
+
+                                <customType>
+                                    <name>Int4Range</name>
+                                    <type>org.jooq.lambda.tuple.Range&lt;Integer></type>
+                                    <binding>co.aisystem.db.converters.PostgresInt4RangeBinding</binding>
+                                </customType>
+                            </customTypes>
+
+                            <forcedTypes>
+                                <forcedType>
+                                    <name>JsonElement</name>
+
+                                    <expression>.*JSON.*</expression>
+
+                                    <types>.*</types>
+                                </forcedType>
+                                <forcedType>
+                                    <name>Int4Range</name>
+                                    <types>Int4Range</types>
+                                </forcedType>
+
+                            </forcedTypes>
+
+
+                            <name>${jooq.generator.db.dialect}</name>
+                            <includes>.*</includes>
+                            <includeSequences>false</includeSequences>
+
+                            <inputSchema>public</inputSchema>
+                            <!--<schemata>-->
+                            <!--<schema>-->
+                            <!--<inputSchema>public</inputSchema>-->
+                            <!--</schema>-->
+                            <!--</schemata>-->
+                        </database>
+                        <generate>
+                            <deprecated>false</deprecated>
+                            <pojos>false</pojos>
+                            <immutablePojos>false</immutablePojos>
+                            <generatedAnnotation>false</generatedAnnotation>
+                            <records>true</records>
+                            <daos>false</daos>
+                            <jpaAnnotations>false</jpaAnnotations>
+                        </generate>
+                        <target>
+                            <packageName>${api.db}</packageName>
+                            <directory>${jooq.generated.source}</directory>
+                        </target>
+                    </generator>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>

@@ -1,0 +1,29 @@
+import io.vavr.control.Try;
+
+import java.util.Map;
+import java.util.Properties;
+var fis = Try.of(() -> new FileInputStream("target/classes/datasource.properties")).get();
+    var prop = new Properties();
+    prop.load(fis)
+    prop.list(System.out)
+    import com.zaxxer.hikari.HikariConfig;
+    import com.zaxxer.hikari.HikariDataSource;
+    Properties prop1 = new Properties();
+    prop.entrySet().stream().
+            filter(p -> p.getKey().toString().contains("datasource")).
+            map(p ->
+                    Map.entry(p.getKey().toString().substring("users.".length()), p.getValue())).
+            forEach(p -> prop1.put(p.getKey(), p.getValue()));
+    prop1.list(System.out)
+    public Properties mapProp(Properties prop) {
+        Properties prop1 = new Properties();
+        prop.entrySet().stream().
+                filter(p -> p.getKey().toString().contains("datasource")).
+                map(p ->
+                        Map.entry(p.getKey().toString().substring("users.datasource.".length()), p.getValue())).
+                forEach(p -> prop1.put(p.getKey(), p.getValue()));
+        return prop1;
+    }
+    var p1 = mapProp(prop);
+    p1.list(System.out)
+    HikariConfig hc = new HikariConfig(p1);

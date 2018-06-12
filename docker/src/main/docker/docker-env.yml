@@ -1,0 +1,57 @@
+version: '3.1'
+
+services:
+  postgres:
+    image: aisystem/postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /data/postgres
+#    volumes:
+#       - /data/postgres:/data/postgres
+#       - ./src/main/resources/db/mentions/init/mentions.sql:/docker-entrypoint-initdb.d/mentions.sql
+#       - ./src/main/resources/db/users/init:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - postgres
+    extra_hosts:
+      - "dockerhost:$DOCKERHOST"
+    restart: unless-stopped
+
+  pgadmin:
+    links:
+      - postgres:postgres
+    image: fenglc/pgadmin4
+    volumes:
+       - /data/pgadmin:/root/.pgadmin
+    ports:
+      - "5050:5050"
+    networks:
+      - postgres
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: my-rabbit
+    environment:
+      RABBITMQ_ERLANG_COOKIE: "qwertyuiop"
+      RABBITMQ_DEFAULT_USER: "rabbitmq"
+      RABBITMQ_DEFAULT_PASS: "rabbitmq"
+      RABBITMQ_DEFAULT_VHOST: "/"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    labels:
+      NAME: "rabbitmq1"
+
+#ENV SERVER_MODE false
+#DEFAULT_USER
+#default 'pgadmin4@pgadmin.org'
+#
+#DEFAULT_PASSWORD
+#default 'admin'
+
+networks:
+  postgres:
+    driver: bridge

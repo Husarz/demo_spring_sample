@@ -1,0 +1,70 @@
+import co.aisystem.shell.rabbitmq.RabbitConnection;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.Consumer;
+import io.vavr.control.Try;
+
+import java.io.IOException;
+import java.util.function.Function;
+
+    String QUEUE_NAME = "hello";
+    ConnectionFactory factory = null;
+    Channel channel = null;
+    Connection connection = null;
+    Consumer consumer = null;
+    boolean autoAck = true; // acknowledgment is covered below
+
+    RabbitConnection rabbit = new RabbitConnection();
+
+//    private String joinStrings(String[] strings, String delimiter) {
+//        int length = strings.length;
+//        if (length == 0) return "";
+//        StringBuilder words = new StringBuilder(strings[0]);
+//        for (int i = 1; i < length; i++) {
+//            words.append(delimiter).append(strings[i]);
+//        }
+//        return words.toString();
+//    }
+//
+//    private String getMessage(String[] strings) {
+//        if (strings.length < 1)
+//            return "Hello World!";
+//        return joinStrings(strings, " ");
+//    }
+
+    private void doWork(String task) throws InterruptedException {
+        for (char ch : task.toCharArray()) {
+            if (ch == '.') Thread.sleep(1000);
+        }
+    }
+
+    public void simpleConsumer(Object message) {
+        Try.run(() -> {
+            System.out.println(" [x] Received '" + message + "'");
+        })
+                .getOrElseThrow((Function<Throwable, RuntimeException>) RuntimeException::new);
+    }
+
+    public void workConsumer(Object message) {
+        Try.run(() -> {
+            System.out.println(" [x] Received '" + message + "'");
+            doWork(message + "");
+        })
+                .getOrElseThrow((Function<Throwable, RuntimeException>) RuntimeException::new);
+    }
+
+    private String prepareMsg(int i) {
+        if (i % 2 == 0) {
+            return "hello " + i + ".....";
+        }
+        return "hello" + i + "..";
+    }
+
+    void send10Msg() throws IOException {
+        int i = 0;
+        while (i < 10) {
+            i++;
+            rabbit.sendMessage(prepareMsg(i));
+        }
+    }

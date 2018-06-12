@@ -1,0 +1,46 @@
+import java.io.*
+import java.math.*
+import java.net.*
+import java.nio.file.*
+import java.util.*
+import java.util.concurrent.*
+import java.util.function.*
+import java.util.prefs.*
+import java.util.regex.*
+import java.util.stream.*
+
+import io.vavr.control.Try
+
+import java.util.Properties
+
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
+
+import javax.sql.DataSource
+
+import org.springframework.context.annotation.*
+import org.springframework.context.support.*
+import org.jooq.SQLDialect
+import org.jooq.impl.DefaultDSLContext
+import org.jooq.DSLContext
+
+    FileInputStream fis = Try.of(() -> new FileInputStream("target/classes/datasource.properties")).get();
+    Properties prop = new Properties();
+    prop.load(fis)
+    prop.list(System.out)
+
+    public Properties mapProp(Properties prop) {
+        Properties prop1 = new Properties();
+        prop.entrySet().stream().
+                filter(p -> p.getKey().toString().contains("datasource")).
+                map(p ->
+                        Map.entry(p.getKey().toString().substring("users.datasource.".length()), p.getValue())).
+                forEach(p -> prop1.put(p.getKey(), p.getValue()));
+        return prop1;
+    }
+
+    Properties p1 = mapProp(prop)
+    HikariConfig hc = new HikariConfig(p1);
+    DataSource ds = new HikariDataSource(hc);
+
+    DSLContext dsl = new DefaultDSLContext(ds, SQLDialect.POSTGRES_9_5 );
